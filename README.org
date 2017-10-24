@@ -1,2 +1,231 @@
-* 1d-qm-scattering
-  Simple textbook example for a quantum scattering problem
+#+OPTIONS: ^:nil toc:nil num:nil
+#+OPTIONS: tex:dvipng  # HTML export with pngs rather than MathJax
+#+OPTIONS: rst-link-use-abs-url:nil
+#+SUBTITLE:
+#+RST_LINK_HOME:
+#+STARTUP: showall inlineimages latexpreview entitiesplain
+
+* COMMENT Content
+
+  Contains explanations for the scattering in 1d
+
+  It is meant to be exported to rst and used in the doc string of the
+  python module. Use this command to create a rst-export
+  (make sure you have [[https://github.com/masayuko/ox-rst][ox-rst]] installed).
+
+  #+BEGIN_SRC emacs-lisp
+    (org-rst-export-as-rst)
+  #+END_SRC
+
+** Example Usage
+   :PROPERTIES:
+   :VISIBILITY: folded
+   :END:
+
+   Based on the script [[./example_scattering_1d.py]]
+
+   [[./figures/example_scattering_1d.svg]]
+
+* Discretization
+
+  We use \(\mathrm{d}^2 \psi / \mathrm{d}x^2 = \left(\psi_{i+1} - 2
+  \psi_i + \psi_{i-1}\right) / \Delta x^2\)
+  and define \(z = \hbar_\mathrm{eff}^2 / 2 / \Delta x^2\)
+  such that the Hamiltonian reads
+  \begin{align*}
+  0 &= \frac{1}{z} (E - H) \psi \\
+  &= \frac{1}{z} \left(E - V + z \Delta x^2 \partial^2 / \partial x^2\right) \psi \\
+  &= \left(\begin{array}{c}
+  \vdots\\
+  \psi_{i+1} + \left(\frac{E - V_i}{z} - 2\right) \psi_i + \psi_{i-1}\\
+  \vdots \end{array}\right)
+  \end{align*}
+  and therefore:
+  \begin{align*}
+  \psi_{i+2} = \left(2 - \frac{E - V_{i+1}}{z}\right) \psi_{i+1} - \psi_i
+  \end{align*}
+
+* Transfer Matrix
+
+  This allows to write a transfer matrix $M$ from
+  \((\psi_{i}, \psi_{i+1}) \to (\psi_{i+1}, \psi_{i+2})\)
+  as
+  \begin{align*}
+    \left(\begin{array}{c}
+      \psi_{i+1} \\
+      \psi_{i+2}
+    \end{array}\right)
+    &=
+    M_{i+1}
+    \left(\begin{array}{c}
+      \psi_{i} \\
+      \psi_{i+1}
+    \end{array}\right)
+    =
+    \left(\begin{array}{cc}
+      0 & 1 \\
+      -1 & 2 - \frac{E - V_{i+1}}{z}
+    \end{array}\right)
+    \left(\begin{array}{c}
+      \psi_{i} \\
+      \psi_{i+1}
+    \end{array}\right)
+  \end{align*}
+  and
+  \begin{align*}
+    M = \prod\limits_{2}^{N-1} M_{N - i}
+  \end{align*}
+  connecting the first two and the last two elements of \(\psi\):
+  \begin{align*}
+    \left(\begin{array}{c}
+      \psi_{N - 2} \\
+      \psi_{N - 1}
+    \end{array}\right)
+    &=
+    M
+    \left(\begin{array}{c}
+      \psi_{0} \\
+      \psi_{1}
+    \end{array}\right)
+  \end{align*}
+
+* Transmission and Reflection
+
+  These are linked to transmission and reflection via:
+  \begin{align*}
+  \psi_0 &= c \cdot \left(
+    \mathrm{e}^{\mathrm{i} k x_0} +
+    r \mathrm{e}^{-\mathrm{i} k x_0}\right) \\
+  \psi_1 &= c \cdot \left(
+    \mathrm{e}^{\mathrm{i} k (x_0 + \Delta x)} +
+    r \mathrm{e}^{-\mathrm{i} k (x_0 + \Delta x)}\right) \\
+  \psi_{N-1} &= c \cdot t \mathrm{e}^{\mathrm{i}kx_{N-1}}\\
+  \psi_{N-2} &= c \cdot t \mathrm{e}^{\mathrm{i}k(x_{N-1} - \Delta x)}
+  \end{align*}
+  Choosing the global phase such that we can compare the phases at
+  \(x_{N-1}\), i.e. \(c = \mathrm{e}^{-\mathrm{i}kx_{N-1}}\), we get
+  with
+  \begin{align*}
+    y &:= \mathrm{e}^{-\mathrm{i}k \Delta x} \\
+    Y &:= c \cdot \mathrm{e}^{\mathrm{i}k x_0} =
+    \mathrm{e}^{\mathrm{i}(k_l x_0 - k_r x_{N-1})}\\
+    Y'&:= c \cdot \mathrm{e}^{-\mathrm{i}k x_0} =
+    \mathrm{e}^{\mathrm{i}(-k_l x_0 - k_r x_{N-1})}
+  \end{align*}
+  we have
+  \begin{align*}
+  t \left(\begin{array}{c} y \\ 1 \end{array}\right)
+  & = M \left(\begin{array}{c} Y \\ Y/y \end{array}\right) +
+  r \cdot M \left(\begin{array}{c} Y' \\ Y'/y \end{array}\right)
+  \end{align*}
+  which in the code below are called
+  ~t * g = c + r * d~, i.e.,
+  \begin{align*}
+  \vec{g} &:= \left(\begin{array}{c} y \\ 1 \end{array}\right) \\
+  \vec{c} &:= Y / y M \cdot \vec{g}\\
+  \vec{d} &:= Y' / y M \cdot \vec{g},
+  \end{align*}
+  and which we can write as a linear system of equations
+  for $r$ and $t$
+  \begin{align*}
+  \vec{c} = r\cdot \vec{d} - t \cdot \vec{g}
+  \end{align*}
+  and we can rewrite this as
+  \begin{align*}
+  \left(\begin{array}{c} c_1 \\ c_2 \end{array}\right) =
+  \left(\begin{array}{cc} d_1 & -g_1\\ d_2 & -g_2 \end{array}\right)
+  \left(\begin{array}{c} r \\ t \end{array}\right)
+  \end{align*}
+  and therefore
+  \begin{align*}
+  \left(\begin{array}{c} r \\ t \end{array}\right) =
+  \left(\begin{array}{cc} d_1 & -g_1\\ d_2 & -g_2 \end{array}\right)^{-1}
+  \left(\begin{array}{c} c_1 \\ c_2 \end{array}\right)
+  \end{align*}
+
+** Scattering Matrix
+
+   Note that we can more generally define:
+   \begin{align*}
+   \psi_0 &=
+     a_1 \mathrm{e}^{\mathrm{i} k_1 x_0} +
+     b_1 \mathrm{e}^{-\mathrm{i} k_1 x_0} \\
+   \psi_1 &=
+     a_1 \mathrm{e}^{\mathrm{i} k_1 (x_0 + \Delta x)} +
+     b_1 \mathrm{e}^{-\mathrm{i} k_1 (x_0 + \Delta x)} \\
+   \psi_{N-2} &=
+     b_2 \mathrm{e}^{\mathrm{i} k_2 (x_{N-1} - \Delta x)} +
+     a_2 \mathrm{e}^{-\mathrm{i} k_2 (x_{N-1} - \Delta x)} \\
+   \psi_{N-1} &=
+     b_2 \mathrm{e}^{\mathrm{i} k_2 x_{N-1}} +
+     a_2 \mathrm{e}^{-\mathrm{i} k_2 x_{N-1}} \\
+   \end{align*}
+   where we this time explicitly differentiate between the \(k\) values
+   on both sides: \(k_1\) vs. \(k_2\). We use prefactors $a_i$ for
+   incoming and $b_i$ for outgoing components. Indices $1$ correspond to
+   left (\(x < 0\)), indices $2$ to right (\(x > 0\)).
+
+   With them the above becomes with
+   \(y_1 = \mathrm{e}^{-\mathrm{i}k_1 \Delta x}\),
+   \(y_2 = \mathrm{e}^{-\mathrm{i}k_2 \Delta x}\),
+   \(Y_1 = \mathrm{e}^{\mathrm{i}k_1 x_0}\), and
+   \(Y_2 = \mathrm{e}^{\mathrm{i}k_2 x_{N-1}}\) using
+   \begin{align*}
+   \vec{d_1} &:= Y_1 \left(\begin{array}{c} 1 \\ 1/y_1 \end{array}\right)\\
+   \vec{d_2} &:= Y_1^{-1} \left(\begin{array}{c} 1 \\ y_1 \end{array}\right)\\
+   \vec{g_1} &:= Y_2 \left(\begin{array}{c} y_2 \\ 1 \end{array}\right)\\
+   \vec{g_2} &:= Y_2^{-1} \left(\begin{array}{c} 1/y_2 \\ 1 \end{array}\right)
+   \end{align*}
+   the following equation:
+   \begin{align*}
+     \left(\begin{array}{c}
+       \psi_{N - 2} \\
+       \psi_{N - 1}
+     \end{array}\right)
+     &=
+     M
+     \left(\begin{array}{c}
+       \psi_{0} \\
+       \psi_{1}
+     \end{array}\right)\\
+     b_2 \vec{g_1} + a_2 \vec{g_2} &= M \left(
+     a_1 \vec{d_1} + b_1 \vec{d_2}
+     \right)\\
+     &= a_1 M\vec{d_1} + b_1 M\vec{d_2}
+   \end{align*}
+   Such that we can map incoming to outgoing amplitudes
+   \begin{align*}
+   b_2 \vec{g}_1 - b_1 M\vec{d}_2 =
+   a_1 M\vec{d}_1 - a_2\vec{g}_2
+   \end{align*}
+   and therefore
+
+   \begin{align*}
+   \left(\begin{array}{cc}
+   -(M\vec{d}_2)_1 & (\vec{g}_1)_1\\
+   -(M\vec{d}_2)_2 & (\vec{g}_1)_2\\
+   \end{array}\right)
+   \vec{b} =
+   \left(\begin{array}{cc}
+   (M\vec{d}_1)_1 & (\vec{g}_2)_1\\
+   (M\vec{d}_1)_2 & (\vec{g}_2)_2\\
+   \end{array}\right)
+   \vec{a}
+   \end{align*}
+   hence
+
+   \begin{align*}
+   S =
+   \left(\begin{array}{cc}
+   -(M\vec{d}_2)_1 & (\vec{g}_1)_1\\
+   -(M\vec{d}_2)_2 & (\vec{g}_1)_2\\
+   \end{array}\right)^{-1}
+   \left(\begin{array}{cc}
+   (M\vec{d}_1)_1 & (\vec{g}_2)_1\\
+   (M\vec{d}_1)_2 & (\vec{g}_2)_2\\
+   \end{array}\right)
+   \end{align*}
+
+* See Also
+
+  [[./example_scattering_1d.org]]: org file with details
