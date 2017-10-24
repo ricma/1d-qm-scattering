@@ -99,4 +99,8 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# ignore cached values
 /example_scattering_1d_cached_values*.dat
+# ignore emacs latex previews
+/ltxpng*
