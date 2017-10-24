@@ -364,18 +364,24 @@ class Heff(QuantumSystem):
         self.Hsys = ClosedSystem(*args, **kwargs)
         super(Heff, self).__init__(*args, **kwargs)
 
-    def __getattr__(self, name):
+    def get_state(self, *args, **kwargs):
         """
-        propagate to the classes contained
+        pass on to the scattering code
         """
-        value = getattr(
-            self.__dict__["scat"], name,
-            getattr(self.__dict__["Hsys"], name,
-                    NotImplemented))
-        if value is NotImplemented:
-            raise AttributeError("No {0} on {1}".format(name, self))
-        else:
-            return value
+        return self.scat.get_state(*args, **kwargs)
+
+
+    def plot_state_at_E(self, *args, **kwargs):
+        """
+        pass on to the scattering code
+        """
+        return self.scat.plot_state_at_E(*args, **kwargs)
+
+    def plot_evecs_to(self, *args, **kwargs):
+        """
+        pass on to the closed system
+        """
+        return self.Hsys.plot_evecs_to(*args, **kwargs)
 
 
 @contextlib.contextmanager
