@@ -99,3 +99,4 @@ ENV/
 
 # mypy
 .mypy_cache/
+/example_scattering_1d_cached_values*.dat
