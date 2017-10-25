@@ -17,14 +17,14 @@
     (org-rst-export-as-rst)
   #+END_SRC
 
-** Example Usage
-   :PROPERTIES:
-   :VISIBILITY: folded
-   :END:
+* Example
+  :PROPERTIES:
+  :VISIBILITY: folded
+  :END:
 
-   Based on the script [[./example_scattering_1d.py]]
+  Based on the script [[./example_scattering_1d.py]]
 
-   [[./figures/example_scattering_1d.svg]]
+  [[./figures/example_scattering_1d.svg]]
 
 * Discretization
 
@@ -228,4 +228,6 @@
 
 * See Also
 
-  [[./example_scattering_1d.org]]: org file with details
+  [[file:example_scattering_1d.org]]: org file with details
+
+  [[https://github.com/ricma/1d-qm-scattering][github repo]]
