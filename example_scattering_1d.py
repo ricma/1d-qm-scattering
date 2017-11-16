@@ -539,6 +539,26 @@ def main(afterwards=plt.show, savefig=False):
         fig.savefig(filename, transparent=True)
         print("Wrote {0}".format(filename))
 
+    print("""
+1D Scattering System
+--------------------
+
+You can control the incident energy by mouse on the left
+and on the lower right panel. The current energy is indicated
+by a grey line.
+
+Furthermore you can use the following keys:
+
+| axis        | key  | description                                |
+|-------------+------+--------------------------------------------|
+| left        | up   | increase E by fraction of displayed y-axis |
+|             | down | decrease E by fraction of displayed y-axis |
+| lower right | ;    | increase E by fractino of displayed x-axis |
+|             | j    | decrease E by fractino of displayed x-axis |
+
+(Reason for these keys are the default keys of matplotlib)
+""")
+
     if isinstance(afterwards, collections.Callable):
         afterwards()
 
