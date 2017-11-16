@@ -8,6 +8,8 @@ from scipy.linalg import eig_banded
 import multiprocessing
 import matplotlib.pyplot as plt
 import contextlib
+import collections
+from functools import reduce
 
 
 def lorentz(x, x_0=0, s=1):
@@ -537,7 +539,7 @@ def main(afterwards=plt.show, savefig=False):
         fig.savefig(filename, transparent=True)
         print("Wrote {0}".format(filename))
 
-    if callable(afterwards):
+    if isinstance(afterwards, collections.Callable):
         afterwards()
 
 
