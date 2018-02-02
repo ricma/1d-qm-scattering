@@ -1,5 +1,12 @@
 """
 Use a shooting method for a simple scattering system
+
+See Also
+--------
+[[https://doi.org/10.1016/j.jsv.2016.05.019]]: Contains transmission
+    and reflection for a vibro-acoustic system (thin bent shell)
+    See Fig. 6, for example.
+
 """
 from __future__ import division, print_function
 
