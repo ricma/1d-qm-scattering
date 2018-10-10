@@ -8,7 +8,7 @@ See Also
     See Fig. 6, for example.
 
 """
-from __future__ import division, print_function
+
 
 import numpy as np
 from scipy.linalg import eig_banded
@@ -373,24 +373,22 @@ class Heff(QuantumSystem):
         self.Hsys = ClosedSystem(*args, **kwargs)
         super(Heff, self).__init__(*args, **kwargs)
 
-    def get_state(self, *args, **kwargs):
+    def __getattr__(self, name):
         """
-        pass on to the scattering code
+        propagate to the classes contained
         """
-        return self.scat.get_state(*args, **kwargs)
-
-
-    def plot_state_at_E(self, *args, **kwargs):
-        """
-        pass on to the scattering code
-        """
-        return self.scat.plot_state_at_E(*args, **kwargs)
-
-    def plot_evecs_to(self, *args, **kwargs):
-        """
-        pass on to the closed system
-        """
-        return self.Hsys.plot_evecs_to(*args, **kwargs)
+        scattering_state = self.__dict__.get(
+            "scat", NotImplemented)
+        hamilton_system = self.__dict__.get(
+            "Hsys", NotImplemented)
+        value = getattr(
+            scattering_state, name,
+            getattr(hamilton_system, name,
+                    NotImplemented))
+        if value is NotImplemented:
+            raise AttributeError("No {0} on {1}".format(name, self))
+        else:
+            return value
 
 
 @contextlib.contextmanager
@@ -439,7 +437,7 @@ def main(afterwards=plt.show, savefig=False):
         desc=description)
     try:
         tr_amp = np.memmap(cache, mode="r", dtype=complex)
-    except IOError:
+    except (IOError, ValueError):
         print("Calculating ... ({0})".format(cache))
         with pool() as p:
             tr_amp = np.array(p.map(
