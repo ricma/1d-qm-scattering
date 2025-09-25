@@ -13,6 +13,7 @@ See Also
 import numpy as np
 from scipy.linalg import eig_banded
 import multiprocessing
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 import contextlib
 import collections
@@ -440,8 +441,10 @@ def main(afterwards=plt.show, savefig=False):
     except (IOError, ValueError):
         print("Calculating ... ({0})".format(cache))
         with pool() as p:
-            tr_amp = np.array(p.map(
-                get_S_t_r, [(scatstate, E_) for E_ in E_delta]))
+            tr_amp = np.array(list(
+                tqdm(p.imap(
+                    get_S_t_r, [(scatstate, E_) for E_ in E_delta]),
+                     total=len(E_delta))))
 
         tr_amp.tofile(cache)
         print("Wrote {0}".format(cache))
