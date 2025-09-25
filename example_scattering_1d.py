@@ -104,7 +104,7 @@ def get_scattering_state(E, x, pot, hbareff):
         calculate the transmission amplitude from the reflection
         """
         # now we can construct the rest of the function
-        psi = np.empty(N, dtype=np.complex)
+        psi = np.empty(N, dtype=complex)
         psi[0] = offset * (
             np.exp(1j * k_left[0] * x[0]) +
             r * np.exp(-1j * k_left[0] * x[0]))
@@ -564,7 +564,7 @@ Furthermore you can use the following keys:
 (Reason for these keys are the default keys of matplotlib)
 """)
 
-    if isinstance(afterwards, collections.Callable):
+    if callable(afterwards):
         afterwards()
 
 
